@@ -1,0 +1,11 @@
+{
+  "name": "ect-commands",
+  "version": "1.0.0",
+  "description": "Scripts to make life easier for the CID front-end developer",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Norbert Bakker",
+  "license": "ISC"
+}

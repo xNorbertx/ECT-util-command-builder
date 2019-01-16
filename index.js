@@ -8,7 +8,9 @@ async function run() {
             createStoredProcedureCommands(lineArray);
         } else if (command === "createModel") {
             createModel(lineArray);
-        }   
+        } else if (command === "createSelectFunctionOutParameters") {
+            createSelectFunctionOutParameters(lineArray);
+        }  
     });
 }
 
@@ -28,19 +30,31 @@ function getDataTypeModel(type) {
 }
 
 function getDataTypeCommand(type) {
+    type = type.toLowerCase();
     switch (true) {
-        case /NVARCHAR2/.test(type):
+        case /nvarchar2/.test(type):
             return "NVarchar2";
-        case /NUMBER/.test(type):
+        case /number/.test(type):
             return "Decimal";
-        case /CHAR/.test(type):
+        case /char/.test(type):
             return "Char";
-        case /TIMESTAMP/.test(type):
+        case /timestamp/.test(type):
             return "TimeStamp";
-        case /DATE/.test(type):
+        case /data/.test(type):
             return "Date";
         default:
             return ""; 
+    }
+}
+
+function getDataTypeFunctionParameter(type) {
+    switch(true) {
+        case /varchar2/.test(type):
+            return "EncodedString";
+        case /number/.test(type):
+            return "Integer";
+        default:
+            return "";    
     }
 }
 
@@ -89,7 +103,30 @@ function createStoredProcedureCommands(lineArray) {
         //Get datatype
         datatype = getDataTypeCommand(arr[3]);
         //Finish the line
-        line = arr[0] + arr[1] + "\", OracleDbType." + datatype + ", ParameterDirection.Input).Value = model." + arr[1].substring(2, arr[1].length) + ";";
+        if (arr[2].toLowerCase() === "in") {
+            line = arr[0] + arr[1] + "\", OracleDbType." + datatype + ", ParameterDirection.Input).Value = model." + arr[1].substring(2, arr[1].length) + ";";
+        } else if (arr[2].toLowerCase() === "out") {
+            line = arr[0] + arr[1] + "\", OracleDbType.RefCursor, ParameterDirection.Output)";
+        }
+        console.log(line);
+    }
+}
+
+function createSelectFunctionOutParameters(lineArray) {
+    let line, arr, datatype;
+    for (let i = 0; i < lineArray.length; i++) {
+        line = lineArray[i];
+        //Remove first four characters
+        line = line.substring(4, line.length);
+        //Create array
+        arr = line.split(" ");
+        arr = arr.filter(x => x !== "");
+        //Add select
+        arr.unshift("select.");
+        //Get datatype
+        datatype = getDataTypeFunctionParameter(arr[3]);
+        //Finish the line
+        line = arr[0] + datatype + "(\"" + arr[1].toUpperCase() + "\", \"" + arr[1].toUpperCase() + "\");";
         console.log(line);
     }
 }
